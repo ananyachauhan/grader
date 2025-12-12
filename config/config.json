@@ -1,0 +1,18 @@
+{
+  "default_rubric": "memo_rubric.json",
+  "ai_model": {
+    "name": "gemini-pro",
+    "temperature": 0.3,
+    "max_tokens": 4000
+  },
+  "grading": {
+    "comment_style": "constructive",
+    "include_suggestions": true,
+    "min_comment_length": 20
+  },
+  "document": {
+    "insert_rubric_on_new_page": true,
+    "rubric_page_title": "Grading Rubric"
+  }
+}
+

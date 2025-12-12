@@ -1,0 +1,37 @@
+{
+  "name": "Memo Rubric",
+  "total_points": 100,
+  "criteria": [
+    {
+      "name": "Clarity and Organization",
+      "max_points": 20,
+      "description": "Clear structure, logical flow, easy to follow"
+    },
+    {
+      "name": "Content Quality",
+      "max_points": 30,
+      "description": "Relevant, accurate information, demonstrates understanding"
+    },
+    {
+      "name": "Writing Mechanics",
+      "max_points": 15,
+      "description": "Grammar, spelling, punctuation, sentence structure"
+    },
+    {
+      "name": "Professional Tone",
+      "max_points": 15,
+      "description": "Appropriate tone for professional context"
+    },
+    {
+      "name": "Format and Presentation",
+      "max_points": 10,
+      "description": "Proper formatting, headers, structure"
+    },
+    {
+      "name": "Completeness",
+      "max_points": 10,
+      "description": "All required elements included, thorough coverage"
+    }
+  ]
+}
+
