@@ -1,6 +1,19 @@
 """
 Database models for BUSN 403 Grading Platform
 """
+# IMPORTANT: Import pysqlite3 BEFORE any SQLAlchemy imports
+# This ensures it's available when SQLAlchemy tries to load the dialect
+import sys
+try:
+    import pysqlite3
+    # Replace sqlite3 module with pysqlite3 for compatibility
+    sys.modules['sqlite3'] = pysqlite3
+    # Also make pysqlite3 directly available for SQLAlchemy dialect
+    sys.modules['pysqlite3'] = pysqlite3
+except ImportError:
+    # Fall back to built-in sqlite3 for local development
+    pass
+
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -92,8 +105,32 @@ def get_db_engine():
     global _db_engine
     if _db_engine is None:
         from pathlib import Path
-        db_path = Path(__file__).parent / 'busn403_grading.db'
-        _db_engine = create_engine(f'sqlite:///{db_path}', echo=False)
+        import os
+        
+        # Check for Fly.io persistent volume path
+        fly_volume_path = os.getenv('FLY_VOLUME_PATH', '/data')
+        db_path = Path(fly_volume_path) / 'busn403_grading.db'
+        
+        # Fallback to local path for development
+        if not db_path.parent.exists():
+            db_path = Path(__file__).parent / 'busn403_grading.db'
+        
+        # Ensure directory exists
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Use pysqlite3:// for Fly.io compatibility (pysqlite3-binary includes SQLite)
+        # Falls back to sqlite:// for local development
+        try:
+            import pysqlite3
+            db_url = f'sqlite+pysqlite3:///{db_path}'
+        except ImportError:
+            db_url = f'sqlite:///{db_path}'
+        
+        _db_engine = create_engine(
+            db_url,
+            echo=False,
+            connect_args={'check_same_thread': False}
+        )
     return _db_engine
 
 def get_db_session():
