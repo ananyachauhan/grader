@@ -118,13 +118,10 @@ def get_db_engine():
         # Ensure directory exists
         db_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Use pysqlite3:// for Fly.io compatibility (pysqlite3-binary includes SQLite)
-        # Falls back to sqlite:// for local development
-        try:
-            import pysqlite3
-            db_url = f'sqlite+pysqlite3:///{db_path}'
-        except ImportError:
-            db_url = f'sqlite:///{db_path}'
+        # Use sqlite:// with sys.modules replacement
+        # The sys.modules['sqlite3'] = pysqlite3 replacement at the top
+        # ensures SQLAlchemy uses pysqlite3 even with sqlite:// URL
+        db_url = f'sqlite:///{db_path}'
         
         _db_engine = create_engine(
             db_url,
