@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUSN 403 - Select Section</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="top-nav-content">
+            <a href="/" class="logo">BUSN 403 Grader</a>
+            <div class="breadcrumbs">
+                <span>Courses</span>
+                <span class="breadcrumbs-separator">/</span>
+                <span>BUSN 403</span>
+            </div>
+            <div class="user-menu">
+                <span style="color: var(--text-medium); font-size: 14px;">TA/Professor</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a href="/" class="sidebar-nav-link active" style="color: #ffffff !important;">
+                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Sections</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Texas A&M Style Banner -->
+            <div class="tamu-banner">
+                <div class="tamu-banner-content">
+                    <img src="{{ url_for('static', filename='images/tamu-logo.jpg') }}" alt="Texas A&M University" class="tamu-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="tamu-logo" style="display: none;">
+                        <span class="logo-a">A</span><span class="logo-t">T</span><span class="logo-m">M</span><span class="logo-reg">®</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-header">
+                <h1>BUSN 403 - Business Writing and Communication</h1>
+                <p>AI-powered grading platform for writing assignments. Upload rubrics, select documents from Google Drive, and automatically generate detailed feedback with inline comments and rubric scores.</p>
+            </div>
+
+            <div class="card" style="padding: 32px;">
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 22px; font-weight: 500; color: var(--aggie-maroon); margin-bottom: 8px;">Available Sections</h2>
+                    <p style="color: var(--text-medium); font-size: 15px;">Click on a section card to view and manage assignments</p>
+                </div>
+                <div class="sections-grid" id="sections-grid">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-medium);">
+                        <div style="font-size: 40px; margin-bottom: 12px;">⏳</div>
+                        <p style="font-size: 16px;">Loading sections...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sections.js') }}"></script>
+</body>
+</html>
+

@@ -11,7 +11,33 @@ from googleapiclient.errors import HttpError
 
 
 def get_credentials():
-    """Get Google API credentials."""
+    """Get Google API credentials from OAuth2 token, service account, or API key."""
+    from pathlib import Path
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    
+    project_root = Path(__file__).parent.parent
+    
+    # Priority 1: OAuth2 credentials (for accessing user's own Drive)
+    token_file = project_root / 'token.json'
+    if token_file.exists():
+        try:
+            # Load token without specifying scopes to avoid scope mismatch errors
+            # The token already contains the scopes it was created with
+            creds = Credentials.from_authorized_user_file(str(token_file))
+            if creds and creds.valid:
+                return creds
+            # If expired, try to refresh
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                # Save refreshed token
+                with open(token_file, 'w') as token:
+                    token.write(creds.to_json())
+                return creds
+        except Exception as e:
+            print(f"Error loading OAuth token: {e}", file=sys.stderr)
+    
+    # Priority 2: Service account
     creds_path = os.getenv('GOOGLE_CREDENTIALS_PATH')
     if creds_path and os.path.exists(creds_path):
         return service_account.Credentials.from_service_account_file(
@@ -20,9 +46,10 @@ def get_credentials():
                    'https://www.googleapis.com/auth/drive']
         )
     
+    # Priority 3: API key (limited access)
     api_key = os.getenv('GOOGLE_API_KEY')
     if not api_key:
-        raise ValueError("GOOGLE_API_KEY or GOOGLE_CREDENTIALS_PATH must be set")
+        raise ValueError("No authentication method available. Please set up OAuth2, service account, or API key.")
     
     return api_key
 
@@ -60,9 +87,9 @@ def get_document_end_index(doc_service, doc_id):
         return 1
 
 
-def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, page_title="Grading Rubric"):
+def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, page_title="Grading Rubric", criterion_comments=None):
     """
-    Insert a rubric table into Google Docs on a new page.
+    Insert a rubric as a formatted list into Google Docs on a new page.
     
     Args:
         doc_id: Google Docs document ID
@@ -71,6 +98,7 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
         total_score: Total score
         credentials: Google API credentials
         page_title: Title for the rubric page
+        criterion_comments: Dictionary of comments for each criterion
     
     Returns:
         bool: Success status
@@ -86,25 +114,29 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
         body = doc.get('body', {})
         content = body.get('content', [])
         
-        # Calculate end index
+        # Calculate end index - must be less than the actual end
         end_index = 1
         for element in content:
             if 'endIndex' in element:
                 end_index = max(end_index, element['endIndex'])
         
+        # The endIndex is the end of the segment, we need to insert before it
+        # Subtract 1 to ensure we're inserting before the end
+        insert_index = max(1, end_index - 1)
+        
         requests = []
         
-        # Insert page break
+        # Insert page break - must be before the end index
         requests.append({
             'insertPageBreak': {
                 'location': {
-                    'index': end_index
+                    'index': insert_index
                 }
             }
         })
         
         # Update end index after page break
-        end_index += 1
+        end_index = insert_index + 1
         
         # Insert title
         requests.append({
@@ -137,51 +169,41 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
         
         end_index = title_end
         
-        # Create table
-        # Table structure: Criterion | Max Points | Points Received
-        num_rows = len(rubric['criteria']) + 2  # Header + criteria + total row
+        # Build rubric text as a numbered list
+        rubric_text = "\n"
         
-        # Insert table
-        table_start_index = end_index
-        requests.append({
-            'insertTable': {
-                'location': {
-                    'index': table_start_index
-                },
-                'rows': num_rows,
-                'columns': 3
-            }
-        })
-        
-        # After table insertion, we need to populate it
-        # Calculate cell indices (approximate - Google Docs handles this)
-        # We'll use a different approach: insert table with content
-        
-        # Alternative: Insert table rows one by one with content
-        # This is simpler but requires knowing cell structure
-        
-        # For now, let's insert a formatted text table instead
-        # Insert table header
-        table_text = "\n\nCriterion | Max Points | Points Received\n"
-        table_text += "--- | --- | ---\n"
-        
-        # Insert criteria rows
-        for criterion in rubric['criteria']:
+        # Add criteria as numbered list items
+        for idx, criterion in enumerate(rubric['criteria'], start=1):
             criterion_name = criterion['name']
             max_points = criterion['max_points']
             points_received = scores.get(criterion_name, 0)
-            table_text += f"{criterion_name} | {max_points} | {points_received}\n"
+            
+            # Get comment for this criterion
+            comment = ""
+            if criterion_comments and criterion_name in criterion_comments:
+                comment = criterion_comments[criterion_name]
+            else:
+                # Generate default comment
+                if points_received == max_points:
+                    comment = "Full points - meets all requirements"
+                elif points_received == 0:
+                    comment = "No points - does not meet requirements"
+                else:
+                    comment = f"Partial credit - {points_received} out of {max_points} points"
+            
+            # Format: "1. Criteria - Length | Comment - 1 page | Points received - 1"
+            rubric_text += f"{idx}. Criteria - {criterion_name} | Comment - {comment} | Points received - {points_received}\n"
         
-        # Insert total row
-        table_text += f"\n**Total** | **{rubric['total_points']}** | **{total_score}**\n"
+        # Add total score
+        rubric_text += f"\nTotal Score - {total_score}\n"
         
-        # Insert the table text
+        # Insert the rubric text
         requests.append({
             'insertText': {
                 'location': {
                     'index': end_index
                 },
-                'text': table_text
+                'text': rubric_text
             }
         })
         
@@ -199,6 +221,8 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
         return insert_rubric_text_fallback(doc_id, rubric, scores, total_score, credentials, page_title)
     except Exception as e:
         print(f"Unexpected error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
         return insert_rubric_text_fallback(doc_id, rubric, scores, total_score, credentials, page_title)
 
 
@@ -219,7 +243,10 @@ def insert_rubric_text_fallback(doc_id, rubric, scores, total_score, credentials
         for element in content:
             if 'endIndex' in element:
                 end_index = max(end_index, element['endIndex'])
-        
+
+        # The endIndex is the end of the segment, we need to insert before it
+        insert_index = max(1, end_index - 1)
+
         # Build rubric text
         rubric_text = f"\n\n{page_title}\n\n"
         rubric_text += "=" * len(page_title) + "\n\n"
@@ -238,12 +265,12 @@ def insert_rubric_text_fallback(doc_id, rubric, scores, total_score, credentials
         requests = [
             {
                 'insertPageBreak': {
-                    'location': {'index': end_index}
+                    'location': {'index': insert_index}
                 }
             },
             {
                 'insertText': {
-                    'location': {'index': end_index + 1},
+                    'location': {'index': insert_index + 1},
                     'text': rubric_text
                 }
             }

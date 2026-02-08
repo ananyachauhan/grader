@@ -1,0 +1,46 @@
+{
+  "name": "Cover Letter Rubric",
+  "total_points": 5.0,
+  "criteria": [
+    {
+      "name": "Length",
+      "max_points": 0.5,
+      "description": "More than 1 page | 1 page"
+    },
+    {
+      "name": "Heading",
+      "max_points": 0.5,
+      "description": "Address and/or date not included; incorrectly addressed to the reader | Address & date included; correctly addressed to the reader"
+    },
+    {
+      "name": "Closing",
+      "max_points": 0.5,
+      "description": "Contact information and signature not included; does not properly thank the reader | Contact information and signature included; properly thanks the reader"
+    },
+    {
+      "name": "Explains how skills/experiences align with the position",
+      "max_points": 0.5,
+      "description": "Unsuccessfully explain how your skills/ experiences align with the position | Successfully explain how your skills/ experiences align with the position"
+    },
+    {
+      "name": "Information",
+      "max_points": 0.5,
+      "description": "Irrelevant information to the position/ job description is included | All information is relevant to the position/ job description"
+    },
+    {
+      "name": "Flow",
+      "max_points": 1,
+      "description": "Lacks structure; missing essential sections | Improvement needed to structure, sections | Great structure; includes essential sections"
+    },
+    {
+      "name": "Overall content",
+      "max_points": 1,
+      "description": "Numerous grammatical, spelling, capitalization, and punctuation errors. | Some grammatical, spelling, capitalization, and punctuation errors. | No or very little grammatical, spelling, capitalization, and punctuation errors."
+    },
+    {
+      "name": "Overall impression",
+      "max_points": 0.5,
+      "description": "Cover letter did not grab the reader’s attention | Cover letter is compelling"
+    }
+  ]
+}

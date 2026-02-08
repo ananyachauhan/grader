@@ -9,6 +9,8 @@ config/.env
 !package.json
 credentials.json
 service-account-key.json
+token.json
+client_secrets.json
 
 # Python
 __pycache__/
@@ -38,4 +40,9 @@ logs/
 
 # n8n
 .n8n/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 

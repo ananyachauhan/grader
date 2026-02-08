@@ -1,7 +1,7 @@
 {
   "default_rubric": "memo_rubric.json",
   "ai_model": {
-    "name": "gemini-pro",
+    "name": "gemini-1.5-flash",
     "temperature": 0.3,
     "max_tokens": 4000
   },

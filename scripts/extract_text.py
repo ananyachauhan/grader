@@ -11,21 +11,45 @@ import json
 
 
 def get_credentials():
-    """Get Google API credentials from environment or service account."""
-    # Try service account first
+    """Get Google API credentials from OAuth2 token, service account, or API key."""
+    from pathlib import Path
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    
+    project_root = Path(__file__).parent.parent
+    
+    # Priority 1: OAuth2 credentials (for accessing user's own Drive)
+    token_file = project_root / 'token.json'
+    if token_file.exists():
+        try:
+            # Load token without specifying scopes to avoid scope mismatch errors
+            # The token already contains the scopes it was created with
+            creds = Credentials.from_authorized_user_file(str(token_file))
+            if creds and creds.valid:
+                return creds
+            # If expired, try to refresh
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                # Save refreshed token
+                with open(token_file, 'w') as token:
+                    token.write(creds.to_json())
+                return creds
+        except Exception as e:
+            print(f"Error loading OAuth token: {e}", file=sys.stderr)
+    
+    # Priority 2: Service account
     creds_path = os.getenv('GOOGLE_CREDENTIALS_PATH')
     if creds_path and os.path.exists(creds_path):
         return service_account.Credentials.from_service_account_file(
             creds_path,
-            scopes=['https://www.googleapis.com/auth/documents.readonly',
+            scopes=['https://www.googleapis.com/auth/documents',
                    'https://www.googleapis.com/auth/drive']
         )
     
-    # For OAuth2, you would need to implement token refresh
-    # This is a simplified version - in production, use proper OAuth2 flow
+    # Priority 3: API key (limited access)
     api_key = os.getenv('GOOGLE_API_KEY')
     if not api_key:
-        raise ValueError("GOOGLE_API_KEY or GOOGLE_CREDENTIALS_PATH must be set")
+        raise ValueError("No authentication method available. Please set up OAuth2, service account, or API key.")
     
     return api_key
 

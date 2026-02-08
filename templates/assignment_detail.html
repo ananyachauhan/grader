@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment Details - BUSN 403</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="top-nav-content">
+            <a href="/" class="logo">BUSN 403 Grader</a>
+            <div class="breadcrumbs" id="breadcrumbs">
+                <a href="/">Courses</a>
+                <span class="breadcrumbs-separator">/</span>
+                <a href="/">BUSN 403</a>
+                <span class="breadcrumbs-separator">/</span>
+                <a href="/assignments" id="breadcrumb-assignments-link">Assignments</a>
+                <span class="breadcrumbs-separator">/</span>
+                <span id="breadcrumb-assignment-name">Assignment Details</span>
+            </div>
+            <div class="user-menu">
+                <span style="color: var(--text-medium); font-size: 14px;">TA/Professor</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li class="sidebar-nav-item">
+                    <a href="/" class="sidebar-nav-link" style="color: #ffffff !important;">
+                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Sections</span>
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="/assignments" id="sidebar-assignments-link" class="sidebar-nav-link" style="color: #ffffff !important;">
+                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Assignments</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="assignment-detail-content">
+                <div style="text-align: center; padding: 40px;">
+                    <p style="color: #666;">Loading assignment details...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const assignmentId = new URLSearchParams(window.location.search).get('assignment_id') || window.location.pathname.split('/').pop();
+        const sectionId = new URLSearchParams(window.location.search).get('section_id');
+        const sectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
+        
+        // Update breadcrumb links
+        if (sectionId) {
+            document.getElementById('breadcrumb-assignments-link').href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
+            document.getElementById('sidebar-assignments-link').href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/assignment_detail.js') }}"></script>
+</body>
+</html>
+

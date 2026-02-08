@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Grading System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Grading System</h1>
+            <p>Automated grading for writing assignments</p>
+        </header>
+
+        <!-- Main Grading Section -->
+        <section id="grading-section" class="card">
+            <h2>Grade Assignments</h2>
+            
+            <div class="form-group">
+                <label for="rubric-select">Select Rubric:</label>
+                <div class="rubric-select-container">
+                    <select id="rubric-select" class="rubric-select">
+                        <option value="">Loading rubrics...</option>
+                    </select>
+                    <button id="delete-rubric-btn" class="btn-secondary rubric-delete-btn" disabled title="Delete selected rubric">
+                        Delete
+                    </button>
+                    <span class="rubric-divider">or</span>
+                    <label for="rubric-upload" class="btn-secondary rubric-upload-btn">
+                        Upload Rubric
+                    </label>
+                    <input type="file" id="rubric-upload" accept=".json,.doc,.docx" style="display: none;">
+                </div>
+                <small id="upload-status" class="upload-status"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="custom-instructions">Custom Grading Instructions (Optional):</label>
+                <textarea id="custom-instructions" rows="4" placeholder="Enter any specific instructions for the AI grader. For example:&#10;&#10;- Focus on clarity and conciseness&#10;- Be strict on grammar errors&#10;- Emphasize critical thinking over memorization&#10;- Pay special attention to citations"></textarea>
+                <small>These instructions will be added to the AI's grading prompt to customize how it evaluates assignments. You can use a rubric with or without custom instructions.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="folder-id">Google Drive Folder ID:</label>
+                <input type="text" id="folder-id" placeholder="Enter folder ID or use default">
+                <button id="load-docs-btn" class="btn-secondary">Load Documents</button>
+            </div>
+
+            <div id="documents-container" class="hidden">
+                <div class="documents-header">
+                    <label>
+                        <input type="checkbox" id="select-all"> Select All
+                    </label>
+                    <span id="selected-count">0 selected</span>
+                </div>
+                <div id="documents-list"></div>
+            </div>
+
+            <div class="form-group">
+                <button id="grade-btn" class="btn-primary" disabled>Grade Selected Documents</button>
+            </div>
+
+            <div id="progress-container" class="hidden">
+                <div class="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+                <p id="progress-text">Preparing...</p>
+            </div>
+        </section>
+
+        <!-- Results Dashboard -->
+        <section id="results-section" class="card hidden">
+            <h2>Grading Results</h2>
+            
+            <div class="results-summary">
+                <div class="stat">
+                    <span class="stat-value" id="total-graded">0</span>
+                    <span class="stat-label">Documents Graded</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="avg-score">0</span>
+                    <span class="stat-label">Average Score</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="success-count">0</span>
+                    <span class="stat-label">Successful</span>
+                </div>
+            </div>
+
+            <div class="results-controls">
+                <input type="text" id="search-docs" placeholder="Search documents...">
+                <select id="filter-status">
+                    <option value="all">All</option>
+                    <option value="success">Successful</option>
+                    <option value="error">Errors</option>
+                </select>
+            </div>
+
+            <div id="results-table"></div>
+
+            <div class="results-actions">
+                <button id="open-all-btn" class="btn-secondary">Open All in Drive</button>
+                <button id="export-btn" class="btn-secondary">Export Results</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+
