@@ -3,6 +3,7 @@ Flask web application for AI Grading System UI
 """
 from flask import Flask, render_template, jsonify
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -14,6 +15,10 @@ load_dotenv(dotenv_path=env_path)
 app = Flask(__name__)
 # Set secret key for session management (OAuth2)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'change-this-secret-key-in-production-' + str(os.urandom(24)))
+
+# Trust proxy headers from Fly.io (for HTTPS detection)
+# This tells Flask to trust X-Forwarded-* headers from the proxy
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 CORS(app)
 
 # Import API routes
@@ -55,5 +60,7 @@ def health():
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug)
 
