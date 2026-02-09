@@ -12,10 +12,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from dotenv import load_dotenv
 import json
+import base64
+import tempfile
 
 # Allow HTTP for localhost development (OAuth2)
-# This is safe for localhost only - remove in production or use HTTPS
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+# This is safe for localhost only - in production, set OAUTHLIB_INSECURE_TRANSPORT=0
+if 'OAUTHLIB_INSECURE_TRANSPORT' not in os.environ:
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # Default to 1 for local dev
 
 # Load environment variables from project root .env file
 project_root = Path(__file__).parent.parent
@@ -30,9 +33,40 @@ SCOPES = [
     'https://www.googleapis.com/auth/documents'  # Full Docs access (includes read and write)
 ]
 
+def get_client_secrets_path():
+    """Get client secrets file path, checking for base64 env var first"""
+    # Check for base64 encoded secrets in environment variable first (for Fly.io)
+    client_secrets_b64 = os.getenv('GOOGLE_CLIENT_SECRETS_B64')
+    if client_secrets_b64:
+        # Decode and create temporary file
+        try:
+            client_secrets_data = base64.b64decode(client_secrets_b64).decode('utf-8')
+            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False)
+            temp_file.write(client_secrets_data)
+            temp_file.close()
+            return temp_file.name
+        except Exception as e:
+            print(f"Error decoding client secrets from environment: {e}", flush=True)
+            # Fall through to file path
+    
+    # Fallback to file path (for local development)
+    client_secrets_file = os.getenv('GOOGLE_CLIENT_SECRETS_FILE', 'client_secrets.json')
+    client_secrets_path = project_root / client_secrets_file
+    
+    if not client_secrets_path.exists():
+        return None
+    
+    return str(client_secrets_path)
+
 def get_oauth_credentials():
-    """Get OAuth2 credentials from token file"""
-    token_file = project_root / 'token.json'
+    """Get OAuth2 credentials from token file (supports Fly.io persistent storage)"""
+    # Check for Fly.io persistent volume path
+    fly_volume_path = os.getenv('FLY_VOLUME_PATH', '/data')
+    token_file = Path(fly_volume_path) / 'token.json'
+    
+    # Fallback to local path for development
+    if not token_file.parent.exists():
+        token_file = project_root / 'token.json'
     
     # Check if we have stored credentials
     if token_file.exists():
@@ -47,6 +81,7 @@ def get_oauth_credentials():
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
                 # Save refreshed token
+                token_file.parent.mkdir(parents=True, exist_ok=True)
                 with open(token_file, 'w') as token:
                     token.write(creds.to_json())
                 return creds
@@ -95,20 +130,28 @@ def auth_status():
 @documents_bp.route('/auth', methods=['GET'])
 def auth():
     """Initiate OAuth2 flow"""
-    client_secrets_file = os.getenv('GOOGLE_CLIENT_SECRETS_FILE', 'client_secrets.json')
-    client_secrets_path = project_root / client_secrets_file
+    client_secrets_path = get_client_secrets_path()
     
-    if not client_secrets_path.exists():
+    if not client_secrets_path:
         return jsonify({
             'error': 'OAuth2 client secrets file not found',
-            'instructions': f'Download OAuth2 credentials from Google Cloud Console and save as {client_secrets_file} in the project root'
+            'instructions': 'Download OAuth2 credentials from Google Cloud Console and save as client_secrets.json in the project root, or set GOOGLE_CLIENT_SECRETS_B64 environment variable'
         }), 400
     
     try:
+        # Manually construct HTTPS URL for production (Fly.io)
+        # Check if we're on Fly.io or behind a proxy that uses HTTPS
+        if os.getenv('FLY_APP_NAME') or request.headers.get('X-Forwarded-Proto') == 'https':
+            # Production - use HTTPS
+            redirect_uri = "https://grader-ai.fly.dev/api/documents/auth/callback"
+        else:
+            # Local development - use url_for
+            redirect_uri = url_for('documents.oauth_callback', _external=True)
+        
         flow = Flow.from_client_secrets_file(
-            str(client_secrets_path),
+            client_secrets_path,
             scopes=SCOPES,
-            redirect_uri=url_for('documents.oauth_callback', _external=True)
+            redirect_uri=redirect_uri
         )
         
         authorization_url, state = flow.authorization_url(
@@ -132,9 +175,6 @@ def auth():
 @documents_bp.route('/auth/callback', methods=['GET'])
 def oauth_callback():
     """OAuth2 callback handler"""
-    client_secrets_file = os.getenv('GOOGLE_CLIENT_SECRETS_FILE', 'client_secrets.json')
-    client_secrets_path = project_root / client_secrets_file
-    
     if 'error' in request.args:
         return f"""
         <html>
@@ -160,18 +200,48 @@ def oauth_callback():
         """, 400
     
     try:
+        client_secrets_path = get_client_secrets_path()
+        
+        if not client_secrets_path:
+            return """
+            <html>
+            <head><title>Authentication Error</title></head>
+            <body style="font-family: Arial; padding: 40px; text-align: center;">
+                <h2>Configuration Error</h2>
+                <p>OAuth2 client secrets not configured. Please set GOOGLE_CLIENT_SECRETS_B64 or provide client_secrets.json file.</p>
+                <p><a href="/grade">Return to Grading Page</a></p>
+            </body>
+            </html>
+            """, 500
+        
+        # Manually construct HTTPS URL for production (Fly.io)
+        # Check if we're on Fly.io or behind a proxy that uses HTTPS
+        if os.getenv('FLY_APP_NAME') or request.headers.get('X-Forwarded-Proto') == 'https':
+            # Production - use HTTPS
+            redirect_uri = "https://grader-ai.fly.dev/api/documents/auth/callback"
+        else:
+            # Local development - use url_for
+            redirect_uri = url_for('documents.oauth_callback', _external=True)
+        
         flow = Flow.from_client_secrets_file(
-            str(client_secrets_path),
+            client_secrets_path,
             scopes=SCOPES,
-            redirect_uri=url_for('documents.oauth_callback', _external=True),
+            redirect_uri=redirect_uri,
             state=session['oauth_state']
         )
         
         flow.fetch_token(authorization_response=request.url)
         
-        # Save credentials
+        # Save credentials (use persistent storage on Fly.io)
         creds = flow.credentials
-        token_file = project_root / 'token.json'
+        fly_volume_path = os.getenv('FLY_VOLUME_PATH', '/data')
+        token_file = Path(fly_volume_path) / 'token.json'
+        
+        # Fallback to local path for development
+        if not token_file.parent.exists():
+            token_file = project_root / 'token.json'
+        
+        token_file.parent.mkdir(parents=True, exist_ok=True)
         with open(token_file, 'w') as token:
             token.write(creds.to_json())
         
