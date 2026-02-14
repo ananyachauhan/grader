@@ -54,6 +54,16 @@ def assignment_detail(assignment_id):
     """Serve assignment detail page"""
     return render_template('assignment_detail.html')
 
+@app.route('/review')
+def review():
+    """Serve review dashboard page"""
+    return render_template('review.html')
+
+@app.route('/review/<int:session_id>')
+def review_detail(session_id):
+    """Serve review detail page"""
+    return render_template('review_detail.html')
+
 @app.route('/api/health')
 def health():
     """Health check endpoint"""

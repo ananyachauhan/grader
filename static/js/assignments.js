@@ -1,22 +1,55 @@
 // Assignments page JavaScript
-let currentSectionId = null;
-let currentSectionNumber = null;
+// Use different variable names to avoid conflict with sidebar.js
+let assignmentsSectionId = null;
+let assignmentsSectionNumber = null;
 let rubrics = [];
+
+// Fallback: Try to load if DOM is already ready
+if (document.readyState === 'loading') {
+    // DOMContentLoaded hasn't fired yet, wait for it
+} else {
+    // DOM is already ready, run immediately
+    setTimeout(() => {
+        if (document.getElementById('assignments-list')) {
+            assignmentsSectionId = new URLSearchParams(window.location.search).get('section_id');
+            assignmentsSectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
+            console.log('Running fallback initialization');
+            loadAssignments();
+        }
+    }, 100);
+}
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    currentSectionId = new URLSearchParams(window.location.search).get('section_id');
-    currentSectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
-    
-    const sectionNumberEl = document.getElementById('section-number');
-    const sectionHeaderEl = document.getElementById('section-header-number');
-    
-    if (sectionNumberEl) sectionNumberEl.textContent = currentSectionNumber;
-    if (sectionHeaderEl) sectionHeaderEl.textContent = currentSectionNumber;
-    
-    loadAssignments();
-    loadRubrics();
-    setupEventListeners();
+    try {
+        assignmentsSectionId = new URLSearchParams(window.location.search).get('section_id');
+        assignmentsSectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
+        
+        console.log('Assignments page initialized:', { assignmentsSectionId, assignmentsSectionNumber });
+        
+        const sectionNumberEl = document.getElementById('section-number');
+        const sectionHeaderEl = document.getElementById('section-header-number');
+        
+        if (sectionNumberEl) sectionNumberEl.textContent = assignmentsSectionNumber;
+        if (sectionHeaderEl) sectionHeaderEl.textContent = assignmentsSectionNumber;
+        
+        loadAssignments();
+        loadRubrics();
+        setupEventListeners();
+    } catch (error) {
+        console.error('Error initializing assignments page:', error);
+        const container = document.getElementById('assignments-list');
+        if (container) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-medium); grid-column: 1 / -1;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+                    <p style="font-size: 20px; margin-bottom: 8px; color: #c62828;">Initialization Error</p>
+                    <p style="font-size: 16px; margin-bottom: 20px;">${error.message}</p>
+                    <button onclick="window.location.reload()" class="btn btn-secondary" style="margin-top: 10px;">Reload Page</button>
+                </div>
+            `;
+        }
+    }
 });
 
 function setupEventListeners() {
@@ -93,29 +126,84 @@ function setupEventListeners() {
 }
 
 async function loadAssignments() {
+    console.log('loadAssignments() called');
+    const container = document.getElementById('assignments-list');
+    
+    if (!container) {
+        console.error('assignments-list container not found');
+        return;
+    }
+    
+    console.log('Container found, clearing loading message');
+    // Immediately clear loading message
+    container.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">Loading...</p>';
+    
+    // Check if section_id is available
+    if (!assignmentsSectionId) {
+        console.warn('No section_id found in URL');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-medium); grid-column: 1 / -1;">
+                <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+                <p style="font-size: 20px; margin-bottom: 8px; color: #c62828;">Missing Section Information</p>
+                <p style="font-size: 16px; margin-bottom: 20px;">Please go back to the sections page and select a section.</p>
+                <a href="/" class="btn btn-primary" style="margin-top: 10px;">Go to Sections</a>
+            </div>
+        `;
+        return;
+    }
+    
     try {
-        const response = await fetch(`/api/sections/${currentSectionId}/assignments`);
+        console.log('Loading assignments for section:', assignmentsSectionId);
+        const response = await fetch(`/api/sections/${assignmentsSectionId}/assignments`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('Assignments data received:', data);
         
         if (data.error) {
-            document.getElementById('assignments-list').innerHTML = `<p style="color: #c62828;">Error: ${data.error}</p>`;
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--text-medium); grid-column: 1 / -1;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+                    <p style="font-size: 20px; margin-bottom: 8px; color: #c62828;">Error Loading Assignments</p>
+                    <p style="font-size: 16px; margin-bottom: 20px;">${data.error}</p>
+                    <button onclick="loadAssignments()" class="btn btn-secondary" style="margin-top: 10px;">Retry</button>
+                </div>
+            `;
             return;
         }
         
-        displayAssignments(data.assignments);
+        displayAssignments(data.assignments || []);
     } catch (error) {
-        document.getElementById('assignments-list').innerHTML = `<p style="color: #c62828;">Error loading assignments: ${error.message}</p>`;
+        console.error('Error loading assignments:', error);
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-medium); grid-column: 1 / -1;">
+                <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+                <p style="font-size: 20px; margin-bottom: 8px; color: #c62828;">Error Loading Assignments</p>
+                <p style="font-size: 16px; margin-bottom: 20px;">${error.message}</p>
+                <button onclick="loadAssignments()" class="btn btn-secondary" style="margin-top: 10px;">Retry</button>
+            </div>
+        `;
     }
 }
+
+// Make loadAssignments globally accessible for retry button
+window.loadAssignments = loadAssignments;
 
 function displayAssignments(assignments) {
     const container = document.getElementById('assignments-list');
     
-    if (assignments.length === 0) {
+    if (!assignments || assignments.length === 0) {
         container.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-                <p style="color: #666; margin-bottom: 20px;">No assignments yet.</p>
-                <p style="color: #666;">Click "Create New Assignment" to get started.</p>
+            <div style="text-align: center; padding: 60px 20px; color: var(--text-medium); grid-column: 1 / -1;">
+                <div style="font-size: 64px; margin-bottom: 20px;">📝</div>
+                <p style="font-size: 20px; margin-bottom: 8px; color: var(--text-dark);">No assignments yet</p>
+                <p style="font-size: 16px; margin-bottom: 24px;">Get started by creating your first assignment for this section.</p>
+                <button onclick="document.getElementById('create-assignment-btn').click()" class="btn btn-primary" style="margin-top: 10px;">
+                    + Create Assignment
+                </button>
             </div>
         `;
         return;
@@ -137,7 +225,7 @@ function displayAssignments(assignments) {
     container.querySelectorAll('.assignment-tile').forEach(tile => {
         tile.addEventListener('click', (e) => {
             const assignmentId = tile.dataset.assignmentId;
-            const url = `/assignment/${assignmentId}?section_id=${currentSectionId}&section_number=${currentSectionNumber}`;
+            const url = `/assignment/${assignmentId}?section_id=${assignmentsSectionId}&section_number=${assignmentsSectionNumber}`;
             window.location.href = url;
         });
     });
@@ -331,7 +419,7 @@ async function handleAssignmentSubmit(e) {
                 body: JSON.stringify(data)
             });
         } else {
-            response = await fetch(`/api/sections/${currentSectionId}/assignments`, {
+            response = await fetch(`/api/sections/${assignmentsSectionId}/assignments`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(data)

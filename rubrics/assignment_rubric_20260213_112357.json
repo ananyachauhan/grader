@@ -1,0 +1,23 @@
+{
+  "name": "Assignment Rubric",
+  "total_points": 5,
+  "criteria": [
+    {
+      "name": "Completion of Tasks",
+      "max_points": 2,
+      "description": "Full Credit: All three tasks attempted (keyword analysis, STAR rewrite, interview reflection). Partial Credit: One task incomplete or missing detail. Minimal / No Credit: Multiple tasks missing."
+    },
+    {
+      "name": "Thoughtful Engagement",
+      "max_points": 2,
+      "description": "Full Credit: Shows genuine effort — reflects on skills, edits AI output, answers prompts thoughtfully. Partial Credit: Basic responses with limited reflection or personalization. Minimal / No Credit: Little effort or mostly copied AI output."
+    },
+    {
+      "name": "Clarity & Organization",
+      "max_points": 1,
+      "description": "Full Credit: Responses clear and readable. Partial Credit: Some unclear or disorganized parts. Minimal / No Credit: Hard to follow or very incomplete."
+    }
+  ],
+  "_original_filename": "AI_Rubric.docx",
+  "_original_file_extension": ".docx"
+}

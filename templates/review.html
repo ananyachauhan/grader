@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Grading Sessions - MaroonGrader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="top-nav-content">
+            <a href="/" class="logo">
+                <span class="logo-icon">MG</span>
+                <span>MaroonGrader</span>
+            </a>
+            <div class="breadcrumbs">
+                <span>Review</span>
+            </div>
+            <div class="user-menu">
+                <span style="color: var(--text-medium); font-size: 14px;">TA/Professor</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <!-- Sidebar will be populated by sidebar.js -->
+            </ul>
+        </aside>
+        <div class="content-area">
+            <div class="page-header">
+                <h1>Review Documents</h1>
+                <p>Review AI-graded documents or grade ungraded documents</p>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="card" style="margin-bottom: 24px;">
+                <div style="display: flex; gap: 16px; border-bottom: 2px solid var(--border-color);">
+                    <button class="filter-tab active" data-status="all" onclick="filterDocuments('all')">
+                        All
+                        <span class="badge" id="all-count">0</span>
+                    </button>
+                    <button class="filter-tab" data-status="pending_review" onclick="filterDocuments('pending_review')">
+                        Pending Review
+                        <span class="badge" id="pending-count">0</span>
+                    </button>
+                    <button class="filter-tab" data-status="ungraded" onclick="filterDocuments('ungraded')">
+                        Ungraded
+                        <span class="badge" id="ungraded-count">0</span>
+                    </button>
+                    <button class="filter-tab" data-status="reviewed" onclick="filterDocuments('reviewed')">
+                        Reviewed
+                        <span class="badge" id="reviewed-count">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div id="sessions-container">
+                <div class="card">
+                    <div style="text-align: center; padding: 40px; color: var(--text-medium);">
+                        <p>Loading sessions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/review.js') }}"></script>
+</body>
+</html>
+

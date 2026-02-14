@@ -102,31 +102,41 @@ def insert_feedback_text(doc_id, strengths, key_issues, suggestions, credentials
         end_index = insert_index + 1
         
         # Insert title
+        title_text = f"{page_title}\n\n"
         requests.append({
             'insertText': {
                 'location': {
                     'index': end_index
                 },
-                'text': f"{page_title}\n\n"
+                'text': title_text
             }
         })
         
-        # Style the title
-        title_end = end_index + len(page_title) + 2
+        # Style the title with highlighting
+        title_end = end_index + len(page_title)
         requests.append({
             'updateTextStyle': {
                 'range': {
                     'startIndex': end_index,
-                    'endIndex': title_end - 1
+                    'endIndex': title_end
                 },
                 'textStyle': {
                     'bold': True,
                     'fontSize': {
-                        'magnitude': 18,
+                        'magnitude': 14,
                         'unit': 'PT'
+                    },
+                    'backgroundColor': {
+                        'color': {
+                            'rgbColor': {
+                                'red': 1.0,
+                                'green': 0.95,
+                                'blue': 0.8  # Light yellow highlight
+                            }
+                        }
                     }
                 },
-                'fields': 'bold,fontSize'
+                'fields': 'bold,fontSize,backgroundColor'
             }
         })
         
@@ -156,13 +166,51 @@ def insert_feedback_text(doc_id, strengths, key_issues, suggestions, credentials
                     'textStyle': {
                         'bold': True,
                         'fontSize': {
-                            'magnitude': 14,
+                            'magnitude': 12,
                             'unit': 'PT'
+                        },
+                        'backgroundColor': {
+                            'color': {
+                                'rgbColor': {
+                                    'red': 1.0,
+                                    'green': 0.95,
+                                    'blue': 0.8  # Light yellow highlight
+                                }
+                            }
                         }
                     },
-                    'fields': 'bold,fontSize'
+                    'fields': 'bold,fontSize,backgroundColor'
                 }
             })
+            
+            # Highlight the content text and set font size to 12
+            strengths_content_start = strengths_heading_end + 1  # After "Strengths\n"
+            strengths_content_end = current_index + len(strengths_text) - 2  # -2 for the \n\n at end
+            if strengths_content_end > strengths_content_start:
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': strengths_content_start,
+                            'endIndex': strengths_content_end
+                        },
+                        'textStyle': {
+                            'fontSize': {
+                                'magnitude': 12,
+                                'unit': 'PT'
+                            },
+                            'backgroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'red': 1.0,
+                                        'green': 0.95,
+                                        'blue': 0.8  # Light yellow highlight
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'fontSize,backgroundColor'
+                    }
+                })
             
             current_index += len(strengths_text)
         
@@ -190,13 +238,51 @@ def insert_feedback_text(doc_id, strengths, key_issues, suggestions, credentials
                     'textStyle': {
                         'bold': True,
                         'fontSize': {
-                            'magnitude': 14,
+                            'magnitude': 12,
                             'unit': 'PT'
+                        },
+                        'backgroundColor': {
+                            'color': {
+                                'rgbColor': {
+                                    'red': 1.0,
+                                    'green': 0.95,
+                                    'blue': 0.8  # Light yellow highlight
+                                }
+                            }
                         }
                     },
-                    'fields': 'bold,fontSize'
+                    'fields': 'bold,fontSize,backgroundColor'
                 }
             })
+            
+            # Highlight the content text and set font size to 12
+            issues_content_start = issues_heading_end + 1
+            issues_content_end = current_index + len(issues_text) - 2
+            if issues_content_end > issues_content_start:
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': issues_content_start,
+                            'endIndex': issues_content_end
+                        },
+                        'textStyle': {
+                            'fontSize': {
+                                'magnitude': 12,
+                                'unit': 'PT'
+                            },
+                            'backgroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'red': 1.0,
+                                        'green': 0.95,
+                                        'blue': 0.8  # Light yellow highlight
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'fontSize,backgroundColor'
+                    }
+                })
             
             current_index += len(issues_text)
         
@@ -224,13 +310,51 @@ def insert_feedback_text(doc_id, strengths, key_issues, suggestions, credentials
                     'textStyle': {
                         'bold': True,
                         'fontSize': {
-                            'magnitude': 14,
+                            'magnitude': 12,
                             'unit': 'PT'
+                        },
+                        'backgroundColor': {
+                            'color': {
+                                'rgbColor': {
+                                    'red': 1.0,
+                                    'green': 0.95,
+                                    'blue': 0.8  # Light yellow highlight
+                                }
+                            }
                         }
                     },
-                    'fields': 'bold,fontSize'
+                    'fields': 'bold,fontSize,backgroundColor'
                 }
             })
+            
+            # Highlight the content text and set font size to 12
+            suggestions_content_start = suggestions_heading_end + 1
+            suggestions_content_end = current_index + len(suggestions_text) - 2
+            if suggestions_content_end > suggestions_content_start:
+                requests.append({
+                    'updateTextStyle': {
+                        'range': {
+                            'startIndex': suggestions_content_start,
+                            'endIndex': suggestions_content_end
+                        },
+                        'textStyle': {
+                            'fontSize': {
+                                'magnitude': 12,
+                                'unit': 'PT'
+                            },
+                            'backgroundColor': {
+                                'color': {
+                                    'rgbColor': {
+                                        'red': 1.0,
+                                        'green': 0.95,
+                                        'blue': 0.8  # Light yellow highlight
+                                    }
+                                }
+                            }
+                        },
+                        'fields': 'fontSize,backgroundColor'
+                    }
+                })
             
             current_index += len(suggestions_text)
         

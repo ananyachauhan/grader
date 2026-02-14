@@ -31,7 +31,7 @@ ADDITIONAL GRADING INSTRUCTIONS:
 
 """
     
-    prompt = f"""You are an expert teaching assistant grading a student assignment. 
+    prompt = f"""You are an expert teaching assistant grading a student assignment. Write all feedback in FIRST PERSON, addressing the student directly as "you" (as if you, the instructor, are writing directly to the student). Use SIMPLE, CLEAR, and CONVERSATIONAL language - write as if you're talking to the student in person, not using fancy or academic jargon.
 
 RUBRIC:
 {rubric['name']} (Total: {rubric['total_points']} points)
@@ -41,17 +41,18 @@ RUBRIC:
 
 TASK:
 1. Evaluate the document against each rubric criterion
-2. Identify strengths, key issues, and suggestions for improvement
-3. Assign points for each criterion based on performance
-4. Return your evaluation in the following JSON format:
+2. Assess grammar and essay structure (overall organization, flow, paragraph structure) - provide general observations, not detailed line-by-line analysis
+3. Identify strengths, key issues, and suggestions for improvement
+4. Assign points for each criterion based on performance
+5. Return your evaluation in the following JSON format:
 
 {{
-  "strengths": "List 2-4 key strengths of the assignment. Be specific and reference what the student did well.",
-  "key_issues": "List 2-4 main issues or weaknesses. Be specific about what needs improvement.",
-  "suggestions": "Provide 2-4 actionable suggestions for improvement. Be constructive and specific.",
+  "strengths": "List 2-4 key strengths of the assignment. Write in first person addressing the student directly using simple, clear language (e.g., 'You did this well...', 'Your approach to...'). Be specific and reference what they did well. Include observations about grammar and essay structure if relevant. Use everyday words, not complicated terms.",
+  "key_issues": "List 2-4 main issues or weaknesses. Write in first person addressing the student directly using simple, clear language (e.g., 'You need to improve...', 'Your work would benefit from...'). Be specific about what needs improvement. Include general observations about grammar and essay structure issues if present (e.g., 'Your essay structure could be improved...', 'There are some grammar issues that affect clarity...'). Use plain, easy-to-understand language.",
+  "suggestions": "Provide 2-4 actionable suggestions for improvement. Write in first person addressing the student directly using simple, conversational language (e.g., 'Consider...', 'Try...', 'You should...'). Be constructive and specific. Include suggestions about grammar and essay structure if relevant (e.g., 'Consider revising your essay structure to...', 'Pay attention to grammar to improve clarity...'). Use everyday words that are easy to understand.",
   "criterion_comments": {{
-    "Clarity and Organization": "Brief comment about this criterion",
-    "Content Quality": "Brief comment about this criterion",
+    "Clarity and Organization": "Brief comment about this criterion, written in first person addressing the student directly using simple, clear language",
+    "Content Quality": "Brief comment about this criterion, written in first person addressing the student directly using simple, clear language",
     ...
   }},
   "scores": {{
@@ -63,11 +64,16 @@ TASK:
 }}
 
 IMPORTANT:
+- Write ALL feedback in FIRST PERSON, addressing the student directly as "you" (not "the student" or "this assignment")
+- Use SIMPLE, CLEAR, CONVERSATIONAL language - write as if you're talking to the student face-to-face
+- Avoid fancy words, academic jargon, or complicated phrases - use everyday language that's easy to understand
+- Use phrases like "You did this well...", "Your work shows...", "You need to...", "Consider trying...", etc.
 - Be specific and constructive in your feedback
-- Strengths should highlight what the student did well
-- Key Issues should identify the main problems that need addressing
-- Suggestions should be actionable and specific
-- For "criterion_comments", provide a brief comment (1-2 sentences) for each criterion explaining the score
+- Evaluate grammar and essay structure (overall organization, paragraph flow, structural coherence) - provide general observations, not detailed grammatical corrections
+- Strengths should highlight what the student did well using "you" language, including grammar and structure if relevant
+- Key Issues should identify the main problems that need addressing using "you" language, including general grammar and structure observations if present
+- Suggestions should be actionable and specific, written as direct advice to the student, including grammar and structure suggestions if relevant
+- For "criterion_comments", provide a brief comment (1-2 sentences) for each criterion explaining the score, written in first person using simple language
 - Scores should reflect actual performance, not just be high
 - Total score should match sum of individual criterion scores
 - Return ONLY valid JSON, no additional text

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUSN 403 - Select Section</title>
+    <title>MaroonGrader - Select Section</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -11,11 +11,11 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="top-nav-content">
-            <a href="/" class="logo">BUSN 403 Grader</a>
+            <a href="/" class="logo">
+                <span class="logo-icon">MG</span>
+                <span>MaroonGrader</span>
+            </a>
             <div class="breadcrumbs">
-                <span>Courses</span>
-                <span class="breadcrumbs-separator">/</span>
-                <span>BUSN 403</span>
             </div>
             <div class="user-menu">
                 <span style="color: var(--text-medium); font-size: 14px;">TA/Professor</span>
@@ -28,11 +28,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <ul class="sidebar-nav">
-                <li class="sidebar-nav-item">
-                    <a href="/" class="sidebar-nav-link active" style="color: #ffffff !important;">
-                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Sections</span>
-                    </a>
-                </li>
+                <!-- Sidebar will be populated by sidebar.js -->
             </ul>
         </aside>
 
@@ -49,8 +45,9 @@
             </div>
 
             <div class="page-header">
-                <h1>BUSN 403 - Business Writing and Communication</h1>
-                <p>This is a AI Grader tool that helps professors and teaching assistants grade writing assignments faster and more consistently. It connects with Google Drive to process student submissions, uses AI to evaluate them based on a rubric, and generates feedback showing strengths, issues, and suggestions for improvement. Instructors review and approve results before finalizing grades. The platform also provides summaries and analytics that show overall class performance, helping instructors quickly understand trends, common mistakes, and how students performed as a group.</p>
+                <h1>MaroonGrader</h1>
+                <p style="color: var(--aggie-maroon); font-weight: 500;">Your Intelligent Assistant</p>
+                <p style="margin-top: 16px;">This is a AI Grader tool that helps professors and teaching assistants grade writing assignments faster and more consistently. It connects with Google Drive to process student submissions, uses AI to evaluate them based on a rubric, and generates feedback showing strengths, issues, and suggestions for improvement. Instructors review and approve results before finalizing grades. The platform also provides summaries and analytics that show overall class performance, helping instructors quickly understand trends, common mistakes, and how students performed as a group.</p>
             </div>
 
             <div class="card" style="padding: 32px;">
@@ -68,6 +65,7 @@
         </main>
     </div>
 
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sections.js') }}"></script>
 </body>
 </html>

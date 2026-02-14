@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment Details - BUSN 403</title>
+    <title>Assignment Details - MaroonGrader</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -11,13 +11,12 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="top-nav-content">
-            <a href="/" class="logo">BUSN 403 Grader</a>
+            <a href="/" class="logo">
+                <span class="logo-icon">MG</span>
+                <span>MaroonGrader</span>
+            </a>
             <div class="breadcrumbs" id="breadcrumbs">
-                <a href="/">Courses</a>
-                <span class="breadcrumbs-separator">/</span>
-                <a href="/">BUSN 403</a>
-                <span class="breadcrumbs-separator">/</span>
-                <a href="/assignments" id="breadcrumb-assignments-link">Assignments</a>
+                <a href="/assignments" id="breadcrumb-section-link">Section <span id="breadcrumb-section-number"></span></a>
                 <span class="breadcrumbs-separator">/</span>
                 <span id="breadcrumb-assignment-name">Assignment Details</span>
             </div>
@@ -32,16 +31,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <ul class="sidebar-nav">
-                <li class="sidebar-nav-item">
-                    <a href="/" class="sidebar-nav-link" style="color: #ffffff !important;">
-                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Sections</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="/assignments" id="sidebar-assignments-link" class="sidebar-nav-link" style="color: #ffffff !important;">
-                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Assignments</span>
-                    </a>
-                </li>
+                <!-- Sidebar will be populated by sidebar.js -->
             </ul>
         </aside>
 
@@ -61,11 +51,18 @@
         const sectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
         
         // Update breadcrumb links
-        if (sectionId) {
-            document.getElementById('breadcrumb-assignments-link').href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
-            document.getElementById('sidebar-assignments-link').href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
+        if (sectionId && sectionNumber) {
+            const breadcrumbLink = document.getElementById('breadcrumb-section-link');
+            const breadcrumbSectionNumber = document.getElementById('breadcrumb-section-number');
+            if (breadcrumbLink) {
+                breadcrumbLink.href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
+            }
+            if (breadcrumbSectionNumber) {
+                breadcrumbSectionNumber.textContent = sectionNumber;
+            }
         }
     </script>
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/assignment_detail.js') }}"></script>
 </body>
 </html>

@@ -66,6 +66,24 @@ body {
     color: var(--aggie-dark);
 }
 
+.logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--aggie-maroon);
+    color: white;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.logo:hover .logo-icon {
+    background: var(--aggie-dark);
+}
+
 .breadcrumbs {
     display: flex;
     align-items: center;
@@ -77,7 +95,7 @@ body {
 }
 
 .breadcrumbs a {
-    color: var(--canvas-blue);
+    color: var(--text-medium);
     text-decoration: none;
 }
 
@@ -98,8 +116,7 @@ body {
 /* Main Layout with Sidebar */
 .main-layout {
     display: flex;
-    max-width: 1400px;
-    margin: 0 auto;
+    width: 100%;
     min-height: calc(100vh - 60px);
 }
 
@@ -155,11 +172,85 @@ body {
     display: block;
 }
 
+/* Expandable Sidebar Menu Items */
+.sidebar-nav-item.has-submenu {
+    position: relative;
+}
+
+.sidebar-nav-item.has-submenu > .sidebar-nav-link {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sidebar-nav-item.has-submenu > .sidebar-nav-link::after {
+    content: '▼';
+    float: right;
+    font-size: 14px;
+    transition: transform 0.2s;
+    opacity: 0.7;
+}
+
+.sidebar-nav-item.has-submenu.expanded > .sidebar-nav-link::after {
+    transform: rotate(180deg);
+}
+
+.sidebar-nav-submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.2);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.sidebar-nav-item.expanded > .sidebar-nav-submenu {
+    max-height: 1000px;
+    transition: max-height 0.3s ease-in;
+}
+
+.sidebar-nav-submenu-item {
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar-nav-submenu-link {
+    display: block;
+    padding: 16px 28px 16px 56px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 400;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+}
+
+.sidebar-nav-submenu-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: rgba(255, 255, 255, 0.4);
+    padding-left: 60px;
+}
+
+.sidebar-nav-submenu-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
 /* Main Content Area */
 .main-content {
     flex: 1;
     padding: 40px;
     background: var(--bg-gray);
+    max-width: calc(100% - 260px);
+}
+
+/* Content Area (alternative class name used in some templates) */
+.content-area {
+    flex: 1;
+    padding: 40px;
+    background: var(--bg-gray);
+    max-width: calc(100% - 260px);
 }
 
 /* Page Header */
@@ -882,6 +973,69 @@ tr:hover {
     margin: 0 0 12px 0;
 }
 
+/* Filter Tabs */
+.filter-tab {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-medium);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-tab:hover {
+    color: var(--aggie-maroon);
+    background: var(--bg-gray);
+}
+
+.filter-tab.active {
+    color: var(--aggie-maroon);
+    border-bottom-color: var(--aggie-maroon);
+    font-weight: 600;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-info {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Border Color Variable */
+:root {
+    --border-color: var(--border-gray);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
@@ -890,6 +1044,7 @@ tr:hover {
     
     .main-content {
         padding: 16px;
+        max-width: calc(100% - 200px);
     }
     
     .results-summary {

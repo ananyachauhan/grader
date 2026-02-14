@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BUSN 403 - Section <span id="section-number"></span></title>
+    <title>MaroonGrader - Section <span id="section-number"></span></title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
@@ -11,12 +11,11 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="top-nav-content">
-            <a href="/" class="logo">BUSN 403 Grader</a>
+            <a href="/" class="logo">
+                <span class="logo-icon">MG</span>
+                <span>MaroonGrader</span>
+            </a>
             <div class="breadcrumbs">
-                <a href="/">Courses</a>
-                <span class="breadcrumbs-separator">/</span>
-                <a href="/">BUSN 403</a>
-                <span class="breadcrumbs-separator">/</span>
                 <span>Section <span id="breadcrumb-section-number"></span></span>
             </div>
             <div class="user-menu">
@@ -30,16 +29,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <ul class="sidebar-nav">
-                <li class="sidebar-nav-item">
-                    <a href="/" class="sidebar-nav-link" style="color: #ffffff !important;">
-                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Sections</span>
-                    </a>
-                </li>
-                <li class="sidebar-nav-item">
-                    <a href="#" class="sidebar-nav-link active" style="color: #ffffff !important;">
-                        <span style="color: #ffffff !important; font-size: 22px; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Assignments</span>
-                    </a>
-                </li>
+                <!-- Sidebar will be populated by sidebar.js -->
             </ul>
         </aside>
 
@@ -47,7 +37,7 @@
         <main class="main-content">
             <div class="page-header">
                 <h1>Section <span id="section-header-number"></span> - Assignments</h1>
-                <p>BUSN 403 - Business Writing and Communication</p>
+                <p style="color: var(--aggie-maroon); font-weight: 500;">Your Intelligent Assistant</p>
             </div>
 
             <!-- Assignments List -->
@@ -140,6 +130,7 @@
         const sectionNumber = new URLSearchParams(window.location.search).get('section_number') || '900';
         document.getElementById('breadcrumb-section-number').textContent = sectionNumber;
     </script>
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/assignments.js') }}"></script>
 </body>
 </html>

@@ -29,6 +29,18 @@ project_root = Path(__file__).parent.parent
 # Load environment variables from project root .env file
 env_path = project_root / '.env'
 load_dotenv(dotenv_path=env_path)
+
+def get_rubrics_dir():
+    """Get rubrics directory path (supports Fly.io persistent storage)"""
+    fly_volume_path = os.getenv('FLY_VOLUME_PATH', '/data')
+    rubrics_dir = Path(fly_volume_path) / 'rubrics'
+    
+    # Fallback to local path for development
+    if not rubrics_dir.parent.exists():
+        rubrics_dir = project_root / 'rubrics'
+    
+    rubrics_dir.mkdir(parents=True, exist_ok=True)
+    return rubrics_dir
 scripts_dir = project_root / 'scripts'
 
 # Import grading_workflow module directly
@@ -51,7 +63,7 @@ grading_bp = Blueprint('grading', __name__)
 @grading_bp.route('/rubrics', methods=['GET'])
 def list_rubrics():
     """List all available rubrics"""
-    rubrics_dir = Path(__file__).parent.parent / 'rubrics'
+    rubrics_dir = get_rubrics_dir()
     rubrics = []
     
     if rubrics_dir.exists():
@@ -76,7 +88,7 @@ def get_rubric(filename):
     if '..' in filename or '/' in filename or '\\' in filename:
         return jsonify({'error': 'Invalid filename'}), 400
     
-    rubrics_dir = Path(__file__).parent.parent / 'rubrics'
+    rubrics_dir = get_rubrics_dir()
     rubric_path = rubrics_dir / filename
     
     if not rubric_path.exists():
@@ -98,7 +110,7 @@ def get_rubric_original(filename):
     if '..' in filename or '/' in filename or '\\' in filename:
         abort(400)
     
-    rubrics_dir = Path(__file__).parent.parent / 'rubrics'
+    rubrics_dir = get_rubrics_dir()
     
     # First, try to find the original file by looking up the JSON
     json_filename = filename
@@ -158,7 +170,7 @@ def delete_rubric(filename):
     if '..' in filename or '/' in filename or '\\' in filename:
         return jsonify({'error': 'Invalid filename'}), 400
     
-    rubrics_dir = Path(__file__).parent.parent / 'rubrics'
+    rubrics_dir = get_rubrics_dir()
     rubric_path = rubrics_dir / filename
     
     # Only allow deletion of JSON files in rubrics directory
@@ -204,7 +216,8 @@ def grade_single():
         return jsonify({'error': 'rubric_filename is required'}), 400
     
     # Get rubric path
-    rubric_path = Path(__file__).parent.parent / 'rubrics' / rubric_filename
+    rubrics_dir = get_rubrics_dir()
+    rubric_path = rubrics_dir / rubric_filename
     if not rubric_path.exists():
         return jsonify({'error': f'Rubric not found: {rubric_filename}'}), 404
     
@@ -230,7 +243,8 @@ def grade_batch():
     if not rubric_filename:
         return jsonify({'error': 'rubric_filename is required'}), 400
     
-    rubric_path = Path(__file__).parent.parent / 'rubrics' / rubric_filename
+    rubrics_dir = get_rubrics_dir()
+    rubric_path = rubrics_dir / rubric_filename
     if not rubric_path.exists():
         return jsonify({'error': f'Rubric not found: {rubric_filename}'}), 404
     
@@ -240,7 +254,8 @@ def grade_batch():
     for doc_id in doc_ids:
         is_word_doc = doc_types.get(doc_id, False)
         try:
-            result = grade_document(doc_id, str(rubric_path), config, custom_instructions, is_word_doc=is_word_doc)
+            # Use grade_document_for_review - doesn't update Google Docs, just returns results
+            result = grading_workflow.grade_document_for_review(doc_id, str(rubric_path), config, custom_instructions, is_word_doc=is_word_doc)
             results.append({
                 'doc_id': doc_id,
                 'success': result.get('success', False),
@@ -249,6 +264,8 @@ def grade_batch():
                 'strengths': result.get('strengths', ''),
                 'key_issues': result.get('key_issues', ''),
                 'suggestions': result.get('suggestions', ''),
+                'criterion_comments': result.get('criterion_comments', {}),
+                'document_text': result.get('document_text', ''),  # Include document text for review
                 'error': result.get('error'),
                 'converted_doc_id': result.get('converted_doc_id'),  # New Google Doc ID if converted
                 'original_doc_id': result.get('original_doc_id'),  # Original Word doc ID if converted
@@ -592,8 +609,7 @@ def upload_rubric():
         json_filename = f"{base_filename}.json"
         
         # Save to rubrics directory
-        rubrics_dir = Path(__file__).parent.parent / 'rubrics'
-        rubrics_dir.mkdir(exist_ok=True)
+        rubrics_dir = get_rubrics_dir()
         json_path = rubrics_dir / json_filename
         
         # Store original filename in rubric metadata

@@ -1,15 +1,15 @@
 // Assignment Detail Page JavaScript
 let currentAssignmentId = null;
-let currentSectionId = null;
-let currentSectionNumber = null;
+let assignmentDetailSectionId = null;
+let assignmentDetailSectionNumber = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     // Get assignment ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     currentAssignmentId = urlParams.get('assignment_id') || window.location.pathname.split('/').pop();
-    currentSectionId = urlParams.get('section_id');
-    currentSectionNumber = urlParams.get('section_number') || '900';
+    assignmentDetailSectionId = urlParams.get('section_id');
+    assignmentDetailSectionNumber = urlParams.get('section_number') || '900';
     
     if (currentAssignmentId) {
         loadAssignmentDetail();
@@ -32,9 +32,23 @@ async function loadAssignmentDetail() {
             fetch(`/api/assignments/${currentAssignmentId}/history`)
         ]);
         
+        // Check for errors in responses
+        if (!assignmentRes.ok) {
+            const errorData = await assignmentRes.json().catch(() => ({ error: 'Failed to load assignment' }));
+            throw new Error(errorData.error || `HTTP ${assignmentRes.status}`);
+        }
+        
+        if (!summaryRes.ok) {
+            console.error('Summary API error:', summaryRes.status, await summaryRes.text());
+        }
+        
+        if (!historyRes.ok) {
+            console.error('History API error:', historyRes.status, await historyRes.text());
+        }
+        
         const assignmentData = await assignmentRes.json();
-        const summaryData = await summaryRes.json();
-        const historyData = await historyRes.json();
+        const summaryData = summaryRes.ok ? await summaryRes.json() : { summary: {} };
+        const historyData = historyRes.ok ? await historyRes.json() : { history: [] };
         
         // Load rubric if assignment has one
         let rubricData = null;
@@ -71,7 +85,7 @@ async function loadAssignmentDetail() {
         let detailHTML = `
             <div class="page-header">
                 <h1>${assignment.name}</h1>
-                <p>BUSN 403 - Business Writing and Communication</p>
+                <p style="color: var(--aggie-maroon); font-weight: 500;">Your Intelligent Assistant</p>
             </div>
             
             <!-- Actions Section -->
@@ -208,12 +222,12 @@ async function loadAssignmentDetail() {
         
         // Add event listeners for buttons
         document.getElementById('grade-btn').addEventListener('click', () => {
-            const url = `/grade?assignment_id=${currentAssignmentId}&section_id=${currentSectionId}&section_number=${currentSectionNumber}`;
+            const url = `/grade?assignment_id=${currentAssignmentId}&section_id=${assignmentDetailSectionId}&section_number=${assignmentDetailSectionNumber}`;
             window.location.href = url;
         });
         
         document.getElementById('edit-btn').addEventListener('click', () => {
-            const url = `/assignments?section_id=${currentSectionId}&section_number=${currentSectionNumber}&edit=${currentAssignmentId}`;
+            const url = `/assignments?section_id=${assignmentDetailSectionId}&section_number=${assignmentDetailSectionNumber}&edit=${currentAssignmentId}`;
             window.location.href = url;
         });
         
@@ -228,9 +242,12 @@ async function loadAssignmentDetail() {
         });
         
     } catch (error) {
+        console.error('Error loading assignment details:', error);
         document.getElementById('assignment-detail-content').innerHTML = `
             <div style="text-align: center; padding: 40px;">
-                <p style="color: #c62828;">Error loading assignment details: ${error.message}</p>
+                <p style="color: #c62828; font-size: 16px; margin-bottom: 10px;">Error loading assignment details</p>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">${error.message}</p>
+                <p style="color: #999; font-size: 12px;">Check the browser console for more details.</p>
                 <a href="/assignments" class="btn btn-primary" style="margin-top: 20px;">Back to Assignments</a>
             </div>
         `;
@@ -264,7 +281,7 @@ async function deleteAssignment() {
         }
         
         // Redirect back to assignments page
-        const url = `/assignments?section_id=${currentSectionId}&section_number=${currentSectionNumber}`;
+        const url = `/assignments?section_id=${assignmentDetailSectionId}&section_number=${assignmentDetailSectionNumber}`;
         window.location.href = url;
     } catch (error) {
         alert('Error deleting assignment: ' + error.message);

@@ -139,38 +139,49 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
         end_index = insert_index + 1
         
         # Insert title
+        title_text = f"{page_title}\n\n"
         requests.append({
             'insertText': {
                 'location': {
                     'index': end_index
                 },
-                'text': f"{page_title}\n\n"
+                'text': title_text
             }
         })
         
-        # Style the title
-        title_end = end_index + len(page_title) + 2
+        # Style the title with highlighting
+        title_end = end_index + len(page_title)
         requests.append({
             'updateTextStyle': {
                 'range': {
                     'startIndex': end_index,
-                    'endIndex': title_end - 1
+                    'endIndex': title_end
                 },
                 'textStyle': {
                     'bold': True,
                     'fontSize': {
-                        'magnitude': 16,
+                        'magnitude': 14,
                         'unit': 'PT'
+                    },
+                    'backgroundColor': {
+                        'color': {
+                            'rgbColor': {
+                                'red': 0.9,
+                                'green': 0.95,
+                                'blue': 1.0  # Light blue highlight
+                            }
+                        }
                     }
                 },
-                'fields': 'bold,fontSize'
+                'fields': 'bold,fontSize,backgroundColor'
             }
         })
         
-        end_index = title_end
+        end_index = end_index + len(title_text)
         
         # Build rubric text as a numbered list
         rubric_text = "\n"
+        rubric_start_index = end_index
         
         # Add criteria as numbered list items
         for idx, criterion in enumerate(rubric['criteria'], start=1):
@@ -204,6 +215,33 @@ def insert_rubric_table(doc_id, rubric, scores, total_score, credentials=None, p
                     'index': end_index
                 },
                 'text': rubric_text
+            }
+        })
+        
+        # Highlight the entire rubric content and set font size to 12
+        rubric_end_index = end_index + len(rubric_text)
+        requests.append({
+            'updateTextStyle': {
+                'range': {
+                    'startIndex': rubric_start_index,
+                    'endIndex': rubric_end_index - 1  # -1 to exclude the final newline
+                },
+                'textStyle': {
+                    'fontSize': {
+                        'magnitude': 12,
+                        'unit': 'PT'
+                    },
+                    'backgroundColor': {
+                        'color': {
+                            'rgbColor': {
+                                'red': 0.9,
+                                'green': 0.95,
+                                'blue': 1.0  # Light blue highlight
+                            }
+                        }
+                    }
+                },
+                'fields': 'fontSize,backgroundColor'
             }
         })
         

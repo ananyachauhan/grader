@@ -20,7 +20,7 @@ function setupEventListeners() {
     document.getElementById('grade-btn').addEventListener('click', gradeDocuments);
     document.getElementById('select-all').addEventListener('change', toggleSelectAll);
     document.getElementById('open-all-btn').addEventListener('click', openAllDocuments);
-    document.getElementById('save-results-btn').addEventListener('click', saveResults);
+    document.getElementById('review-btn').addEventListener('click', goToReview);
 }
 
 async function checkAuthStatus() {
@@ -407,9 +407,9 @@ function openAllDocuments() {
     });
 }
 
-async function saveResults() {
+async function goToReview() {
     if (gradingResults.length === 0) {
-        alert('No results to save');
+        alert('No results to review');
         return;
     }
     
@@ -417,6 +417,7 @@ async function saveResults() {
     const docIds = Array.from(selectedDocs);
     
     try {
+        // Save the grading session first
         const response = await fetch('/api/sessions', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -435,10 +436,8 @@ async function saveResults() {
             return;
         }
         
-        alert('Results saved successfully! Status: Pending Review');
-        
-        // Optionally redirect back to assignments
-        // window.location.href = `/assignments?section_id=${sectionId}&section_number=${sectionNumber}`;
+        // Redirect to review dashboard
+        window.location.href = '/review';
         
     } catch (error) {
         alert('Error saving results: ' + error.message);
